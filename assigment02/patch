@@ -1,0 +1,11 @@
+--- Makefile.bak	2018-12-04 13:07:51.765560032 +0100
++++ /usr/src/kernel-4.20.0/Makefile	2018-12-04 13:07:59.253560364 +0100
+@@ -2,7 +2,7 @@
+ VERSION = 4
+ PATCHLEVEL = 20
+ SUBLEVEL = 0
+-EXTRAVERSION = -rc5
++EXTRAVERSION = -thor_kernel
+ NAME = Shy Crocodile
+ 
+ # *DOCUMENTATION*
