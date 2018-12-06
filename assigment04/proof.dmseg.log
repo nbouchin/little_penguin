@@ -1,0 +1,14 @@
+[  636.962053] usb 1-2: new full-speed USB device number 9 using ohci-pci
+[  637.229308] usb 1-2: New USB device found, idVendor=248a, idProduct=8367, bcdDevice= 1.00
+[  637.229698] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[  637.229999] usb 1-2: Product: Wireless Receiver
+[  637.230260] usb 1-2: Manufacturer: Telink
+[  637.247811] input: Telink Wireless Receiver Mouse as /devices/pci0000:00/0000:00:06.0/usb1/1-2/1-2:1.0/0003:248A:8367.000C/input/input27
+[  637.248436] input: Telink Wireless Receiver Consumer Control as /devices/pci0000:00/0000:00:06.0/usb1/1-2/1-2:1.0/0003:248A:8367.000C/input/input28
+[  637.357621] input: Telink Wireless Receiver System Control as /devices/pci0000:00/0000:00:06.0/usb1/1-2/1-2:1.0/0003:248A:8367.000C/input/input29
+[  637.358293] hid-generic 0003:248A:8367.000C: input,hidraw1: USB HID v1.11 Mouse [Telink Wireless Receiver] on usb-0000:00:06.0-2/input0
+[  637.369947] input: Telink Wireless Receiver as /devices/pci0000:00/0000:00:06.0/usb1/1-2/1-2:1.1/0003:248A:8367.000D/input/input30
+[  637.423837] hid-generic 0003:248A:8367.000D: input,hidraw2: USB HID v1.11 Keyboard [Telink Wireless Receiver] on usb-0000:00:06.0-2/input1
+[  637.439319] Hello world !
+[  639.479191] usb 1-2: USB disconnect, device number 9
+[  639.481647] Cleaning up module.
