@@ -1,2 +1,2 @@
-KERNEL == "event*", ACTION == "add", SUBSYSTEM == "input", ENV{ID_INPUT_KEYBOARD}=="1", RUN += "/sbin/insmod /root/little_penguin/assigment04/main.ko"
-KERNEL == "event*", ACTION == "remove", SUBSYSTEM == "input", ENV{ID_INPUT_KEYBOARD}=="1", RUN += "/sbin/rmmod main.ko"
+KERNEL=="event*", ACTION=="add", SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}="1", RUN+="/sbin/insmod /root/little_penguin/assigment04/main.ko"
+KERNEL=="event*", ACTION=="remove", SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}="1", RUN+="/sbin/rmmod main.ko"
