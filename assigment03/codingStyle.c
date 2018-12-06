@@ -7,7 +7,7 @@ int     do_work(int *my_int, int retval)
 {
 	int x;
 	int y = *my_int;
-	int z;
+	int z = 0;
 
 	for (x = 0; x < my_int; ++x)
 		udelay(10);
