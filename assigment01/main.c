@@ -2,6 +2,8 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 
+MODULE_LICENSE("GPL");
+
 static int __init hello_init(void)
 {
 	printk(KERN_INFO "Hello world !\n");

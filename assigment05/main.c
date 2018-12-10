@@ -5,6 +5,8 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 
+MODULE_LICENSE("GPL");
+
 static const char g_s_logname[] = "nbouchin";
 static char g_s_chararray[9];
 static const ssize_t g_s_logname_size = sizeof(g_s_logname);
