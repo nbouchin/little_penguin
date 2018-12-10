@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ *  codingStyle.c
+ *
+ *  Copyright (C) 1991, 1992  Linus Torvalds
+ *  changes by Thomas Schoebel-Theuer
+ */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/delay.h>
