@@ -15,6 +15,7 @@ static const char g_s_logname[] = "nbouchin";
 static char g_s_chararray[8];
 static const ssize_t g_s_logname_size = sizeof(g_s_logname);
 static void *ptr;
+static size_t ldata;
 
 DEFINE_MUTEX(lock);
 
@@ -56,8 +57,8 @@ ssize_t foo_file_read(struct file *filp, char __user *buff, size_t count,
 		mutex_unlock(&lock);
 		return 0;
 	}
-	if (*offp + count > PAGE_SIZE)
-		count = PAGE_SIZE - *offp;
+	if (*offp + count > ldata)
+		count = ldata - *offp;
 	if (copy_to_user(buff, ptr + *offp, count) != 0) {
 		mutex_unlock(&lock);
 		return -EFAULT;
@@ -87,6 +88,7 @@ ssize_t foo_file_write(struct file *filp, const char __user *buff, size_t count,
 			return -EFAULT;
 		}
 		*offp += count;
+		ldata += count;
 	}
 	printk(KERN_INFO "Foo debugfs file is ok.\n");
 	mutex_unlock(&lock);
