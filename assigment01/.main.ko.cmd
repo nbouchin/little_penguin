@@ -1,0 +1,1 @@
+cmd_/root/little_penguin/assigment01/main.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds  --build-id  -o /root/little_penguin/assigment01/main.ko /root/little_penguin/assigment01/main.o /root/little_penguin/assigment01/main.mod.o ;  true
