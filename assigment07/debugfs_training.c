@@ -7,6 +7,7 @@
 #include <linux/debugfs.h>
 #include <linux/jiffies.h>
 #include <linux/slab.h>
+#include <linux/mutex.h>
 
 MODULE_LICENSE("GPL");
 
@@ -14,6 +15,8 @@ static const char g_s_logname[] = "nbouchin";
 static char g_s_chararray[8];
 static const ssize_t g_s_logname_size = sizeof(g_s_logname);
 static void *ptr;
+
+DEFINE_MUTEX(lock);
 
 ssize_t id_file_read(struct file *filp, char __user *buff, size_t count,
 		     loff_t *offp)
@@ -48,34 +51,45 @@ ssize_t id_file_write(struct file *filp, const char __user *buff, size_t count,
 ssize_t foo_file_read(struct file *filp, char __user *buff, size_t count,
 		      loff_t *offp)
 {
-	if (*offp >= PAGE_SIZE)
+	mutex_lock(&lock);
+	if (*offp >= PAGE_SIZE) {
+		mutex_unlock(&lock);
 		return 0;
+	}
 	if (*offp + count > PAGE_SIZE)
 		count = PAGE_SIZE - *offp;
-	if (copy_to_user(buff, ptr + *offp, count) != 0)
+	if (copy_to_user(buff, ptr + *offp, count) != 0) {
+		mutex_unlock(&lock);
 		return -EFAULT;
+	}
 	*offp += count;
+	mutex_unlock(&lock);
 	return count;
 }
 
 ssize_t foo_file_write(struct file *filp, const char __user *buff, size_t count,
 		       loff_t *offp)
 {
+	mutex_lock(&lock);
 	if (!ptr) {
 		if (!(ptr = kmalloc(PAGE_SIZE, GFP_KERNEL))) {
+			mutex_unlock(&lock);
 			return -EFAULT;
 		}
 		memset(ptr, 0, PAGE_SIZE);
 	}
 	if (!buff || !ptr) {
+		mutex_unlock(&lock);
 		return -EFAULT;
 	} else {
 		if (copy_from_user(ptr + *offp, buff, count) != 0) {
+			mutex_unlock(&lock);
 			return -EFAULT;
 		}
 		*offp += count;
 	}
 	printk(KERN_INFO "Foo debugfs file is ok.\n");
+	mutex_unlock(&lock);
 	return count;
 }
 
