@@ -1,6 +1,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
+#include <linux/uaccess.h>
 #include <linux/miscdevice.h>
 #include <linux/fs.h>
 #include <linux/mount.h>
@@ -11,30 +12,34 @@
 MODULE_LICENSE("GPL");
 
 struct dentry *mymounts = NULL;
+struct proc_dir_entry *proc_dir_entry = NULL;
 
-ssize_t read_proc(struct file *filp, char *buf, size_t len, loff_t *offp)
+ssize_t read_proc(struct file *filp, char *buf, size_t count, loff_t *offp)
 {
-	list_for_each_entry (mymounts,
-			     &current->fs->root.mnt->mnt_root->d_subdirs,
-			     d_child) {
-		if (mymounts->d_flags & DCACHE_MOUNTED)
+	list_for_each_entry (mymounts, &current->fs->root.mnt->mnt_root->d_subdirs, d_child) {
+		if (mymounts->d_flags & DCACHE_MOUNTED) {
+			if (copy_to_user(buf, mymounts->d_name.name, count) != 0) {
+				return -EFAULT;
+			}
+			*offp += count;
 			printk("%s is mounted", mymounts->d_name.name);
+		}
 	}
-	return 0;
+	return count;
 }
 
 struct file_operations fops = { .read = read_proc };
 
 static int __init mountlist_init(void)
 {
-//	mymounts = proc_create("mymounts", 0777, NULL, &fops);
+	proc_dir_entry = proc_create("mymounts", 0777, NULL, &fops);
 	printk(KERN_INFO "mountlist module loaded.\n");
 	return 0;
 }
 
 static void __exit mountlist_exit(void)
 {
-//	proc_remove(mymounts);
+	proc_remove(proc_dir_entry);
 	printk(KERN_INFO "Cleaning up module.\n");
 }
 
