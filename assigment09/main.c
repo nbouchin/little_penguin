@@ -8,60 +8,123 @@
 #include <linux/fs_struct.h>
 #include <linux/proc_fs.h>
 #include <linux/slab.h>
-#include </usr/src/linux-next-next-20181210/fs/proc/internal.h>
+#include <linux/seq_file.h>
+#include <linux/proc_fs.h>
+#include <linux/namei.h>
+#include <linux/nsproxy.h>
+#include <../fs/proc/internal.h>
+#include <../fs/mount.h>
 
 MODULE_LICENSE("GPL");
 
-struct dentry *mymounts = NULL;
-struct proc_dir_entry *proc_dir_entry = NULL;
-static char *ptr;
-static size_t ldata;
+#define PROC_NAME	"mymounts"
 
-ssize_t read_proc(struct file *filp, char __user *buff, size_t count, loff_t *offp)
+static void *my_seq_start(struct seq_file *s, loff_t *pos)
 {
-	if (*offp >= PAGE_SIZE * sizeof(char))
-		return 0;
-	if (*offp + count > ldata)
-		count = ldata - *offp;
-	if (copy_to_user(buff, ptr + *offp, count) != 0) {
-		return -EFAULT;
+	static unsigned long counter = 0;
+
+	/* beginning a new sequence ? */	
+	if ( *pos == 0 )
+	{	
+		/* yes => return a non null value to begin the sequence */
+		return &counter;
 	}
-	*offp += count;
-	return count;
+	else
+	{
+		/* no => it's the end of the sequence, return end to stop reading */
+		*pos = 0;
+		return NULL;
+	}
 }
 
-struct file_operations fops = { .read = read_proc };
-
-static int __init mountlist_init(void)
+/**
+ * This function is called after the beginning of a sequence.
+ * It's called untill the return is NULL (this ends the sequence).
+ *
+ */
+static void *my_seq_next(struct seq_file *s, void *v, loff_t *pos)
 {
-	size_t count;
+	unsigned long *tmp_v = (unsigned long *)v;
+	(*tmp_v)++;
+	(*pos)++;
+	return NULL;
+}
 
-	count = 0;
-	if (!ptr) {
-		if (!(ptr = kmalloc(PAGE_SIZE * sizeof(char), GFP_KERNEL))) {
-			return -EFAULT;
-		}
+/**
+ * This function is called at the end of a sequence
+ * 
+ */
+static void my_seq_stop(struct seq_file *s, void *v)
+{
+	/* nothing to do, we use a static value in start() */
+}
+
+/**
+ * This function is called for each "step" of a sequence
+ *
+ */
+static int my_seq_show(struct seq_file *s, void *v)
+{
+	struct mnt_namespace	*ns = current->nsproxy->mnt_ns;
+	struct mount		*mnt;
+
+	list_for_each_entry(mnt, &ns->list, mnt_list) {
+		seq_printf(s, "%s\n", mnt->mnt_mountpoint->d_name.name);
 	}
-	memset(ptr, 0, PAGE_SIZE * sizeof(char));
-	proc_dir_entry = proc_create("mymounts", 0777, NULL, &fops);
-	list_for_each_entry (mymounts, &current->fs->root.mnt->mnt_root->d_subdirs, d_child) {
-		if (mymounts->d_flags & DCACHE_MOUNTED) {
-			ptr = strncat(ptr, mymounts->d_name.name, strlen(mymounts->d_name.name));	
-			count += strlen(mymounts->d_name.name);
-			*(ptr + count) = '\n';
-			count++;
-			ldata += count;
-		}
-	}
-	printk(KERN_INFO "mountlist module loaded.\n");
 	return 0;
 }
 
-static void __exit mountlist_exit(void)
+/**
+ * This structure gather "function" to manage the sequence
+ *
+ */
+static struct seq_operations my_seq_ops = {
+	.start = my_seq_start,
+	.next  = my_seq_next,
+	.stop  = my_seq_stop,
+	.show  = my_seq_show
+};
+
+/**
+ * This function is called when the /proc file is open.
+ *
+ */
+static int my_open(struct inode *inode, struct file *file)
 {
-	proc_remove(proc_dir_entry);
-	printk(KERN_INFO "Cleaning up module.\n");
+	return seq_open(file, &my_seq_ops);
+};
+
+/**
+ * This structure gather "function" that manage the /proc file
+ *
+ */
+static struct file_operations my_file_ops = {
+	.owner   = THIS_MODULE,
+	.open    = my_open,
+	.read    = seq_read,
+	.llseek  = seq_lseek,
+	.release = seq_release
+};
+	
+	
+/**
+ * This function is called when the module is loaded
+ *
+ */
+int init_module(void)
+{
+	struct proc_dir_entry *entry;
+
+	entry = proc_create(PROC_NAME, 0, NULL, &my_file_ops);
+	return 0;
 }
 
-module_init(mountlist_init);
-module_exit(mountlist_exit);
+/**
+ * This function is called when the module is unloaded.
+ *
+ */
+void cleanup_module(void)
+{
+	remove_proc_entry(PROC_NAME, NULL);
+}
+
