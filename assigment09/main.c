@@ -1,9 +1,9 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <linux/uaccess.h>
 #include <linux/miscdevice.h>
 #include <linux/fs.h>
+#include <linux/uaccess.h>
 #include <linux/mount.h>
 #include <linux/fs_struct.h>
 #include <linux/proc_fs.h>
@@ -69,7 +69,7 @@ static int my_seq_show(struct seq_file *s, void *v)
 	struct mount		*mnt;
 
 	list_for_each_entry(mnt, &ns->list, mnt_list) {
-		seq_printf(s, "%s\t\t/%s\n", mnt->mnt_mountpoint->d_name.name, mnt->mnt_mountpoint->d_name.name);
+		seq_printf(s, "%s\t\t%s\n", mnt->mnt_mountpoint->d_name.name, mnt->mnt_devname);
 	}
 	return 0;
 }
@@ -79,8 +79,8 @@ static int my_seq_show(struct seq_file *s, void *v)
  *
  */
 static struct seq_operations my_seq_ops = {
-//	.start = my_seq_start,
-//	.next  = my_seq_next,
+	.start = my_seq_start,
+	.next  = my_seq_next,
 	.stop  = my_seq_stop,
 	.show  = my_seq_show
 };
@@ -105,8 +105,8 @@ static struct file_operations my_file_ops = {
 	.llseek  = seq_lseek,
 	.release = seq_release
 };
-	
-	
+
+
 /**
  * This function is called when the module is loaded
  *
