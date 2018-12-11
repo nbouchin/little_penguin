@@ -65,7 +65,7 @@ static int my_open(struct inode *inode, struct file *file)
 	return seq_open(file, &my_seq_ops);
 };
 
-static srruct file_operations my_file_ops = { .owner = THIS_MODULE,
+static struct file_operations my_file_ops = { .owner = THIS_MODULE,
 					      .open = my_open,
 					      .read = seq_read,
 					      .llseek = seq_lseek,
