@@ -23,25 +23,14 @@ static void *my_seq_start(struct seq_file *s, loff_t *pos)
 {
 	static unsigned long counter = 0;
 
-	/* beginning a new sequence ? */	
-	if ( *pos == 0 )
-	{	
-		/* yes => return a non null value to begin the sequence */
+	if ( *pos == 0 ) {	
 		return &counter;
-	}
-	else
-	{
-		/* no => it's the end of the sequence, return end to stop reading */
+	} else {
 		*pos = 0;
 		return NULL;
 	}
 }
 
-/**
- * This function is called after the beginning of a sequence.
- * It's called untill the return is NULL (this ends the sequence).
- *
- */
 static void *my_seq_next(struct seq_file *s, void *v, loff_t *pos)
 {
 	unsigned long *tmp_v = (unsigned long *)v;
@@ -50,19 +39,10 @@ static void *my_seq_next(struct seq_file *s, void *v, loff_t *pos)
 	return NULL;
 }
 
-/**
- * This function is called at the end of a sequence
- * 
- */
 static void my_seq_stop(struct seq_file *s, void *v)
 {
-	/* nothing to do, we use a static value in start() */
 }
 
-/**
- * This function is called for each "step" of a sequence
- *
- */
 static int my_seq_show(struct seq_file *s, void *v)
 {
 	struct mnt_namespace	*ns = current->nsproxy->mnt_ns;
@@ -74,10 +54,6 @@ static int my_seq_show(struct seq_file *s, void *v)
 	return 0;
 }
 
-/**
- * This structure gather "function" to manage the sequence
- *
- */
 static struct seq_operations my_seq_ops = {
 	.start = my_seq_start,
 	.next  = my_seq_next,
@@ -85,19 +61,11 @@ static struct seq_operations my_seq_ops = {
 	.show  = my_seq_show
 };
 
-/**
- * This function is called when the /proc file is open.
- *
- */
 static int my_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &my_seq_ops);
 };
 
-/**
- * This structure gather "function" that manage the /proc file
- *
- */
 static struct file_operations my_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = my_open,
@@ -106,11 +74,6 @@ static struct file_operations my_file_ops = {
 	.release = seq_release
 };
 
-
-/**
- * This function is called when the module is loaded
- *
- */
 int init_module(void)
 {
 	struct proc_dir_entry *entry;
@@ -119,10 +82,6 @@ int init_module(void)
 	return 0;
 }
 
-/**
- * This function is called when the module is unloaded.
- *
- */
 void cleanup_module(void)
 {
 	remove_proc_entry(PROC_NAME, NULL);
