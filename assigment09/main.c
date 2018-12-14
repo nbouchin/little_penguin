@@ -21,22 +21,22 @@ MODULE_LICENSE("GPL");
 
 static void *my_seq_start(struct seq_file *s, loff_t *pos)
 {
-	static unsigned long counter = 0;
-
-	if (*pos == 0) {
-		return &counter;
-	} else {
-		*pos = 0;
-		return NULL;
-	}
+	struct mnt_namespace *ns = current->nsproxy->mnt_ns;
+    
+    s->private = &ns->list;
+    return pos;
 }
 
 static void *my_seq_next(struct seq_file *s, void *v, loff_t *pos)
 {
-	unsigned long *tmp_v = (unsigned long *)v;
-	(*tmp_v)++;
-	(*pos)++;
-	return NULL;
+    struct mount *mount = list_entry(s, struct mount, mnt_list);
+    
+    mount = list_next_entry(mount, mnt_list);
+    s->private = mount;
+    if (!s->private)
+        return NULL;
+    *pos += 1;
+	return pos;
 }
 
 static void my_seq_stop(struct seq_file *s, void *v)
@@ -45,17 +45,14 @@ static void my_seq_stop(struct seq_file *s, void *v)
 
 static int my_seq_show(struct seq_file *s, void *v)
 {
-	struct mnt_namespace *ns = current->nsproxy->mnt_ns;
-	struct mount *mnt;
-
-	list_for_each_entry (mnt, &ns->list, mnt_list) {
-		seq_printf(s, "%s\t\t%s\n", mnt->mnt_mountpoint->d_name.name,
-			   mnt->mnt_devname);
-	}
+        struct mount *mount = list_entry(s, struct mount, mnt_list);
+        
+        seq_printf(s, "%s\t\t%s\n", mnt->mnt_mountpoint->d_name.name, mnt->mnt_devname);
 	return 0;
 }
 
-static struct seq_operations my_seq_ops = { .start = my_seq_start,
+static struct seq_operations my_seq_ops = {
+                        .start = my_seq_start,
 					    .next = my_seq_next,
 					    .stop = my_seq_stop,
 					    .show = my_seq_show };
