@@ -45,7 +45,7 @@ ssize_t id_file_write(struct file *filp, const char __user *buff, size_t count,
 	}
 	if (strncmp(g_s_logname, g_s_chararray, 8))
 		return -EFAULT;
-	printk(KERN_INFO "Id debugfs file write is ok.\n");
+	pr_info("Id debugfs file write is ok.\n");
 	return count;
 }
 
@@ -90,7 +90,7 @@ ssize_t foo_file_write(struct file *filp, const char __user *buff, size_t count,
 		*offp += count;
 		ldata += count;
 	}
-	printk(KERN_INFO "Foo debugfs file is ok.\n");
+	pr_info("Foo debugfs file is ok.\n");
 	mutex_unlock(&lock);
 	return count;
 }
@@ -107,14 +107,14 @@ static int __init misc_init(void)
 	debugfs_create_file("id", 0777, fortytwo, NULL, &id_fops);
 	debugfs_create_u64("jiffies", 0444, fortytwo, (void *)&jiffies);
 	debugfs_create_file("foo", 0644, fortytwo, NULL, &foo_fops);
-	printk(KERN_INFO "Debugfs files generated.\n");
+	pr_info("Debugfs files generated.\n");
 	return 0;
 }
 
 static void __exit misc_exit(void)
 {
 	debugfs_remove_recursive(fortytwo);
-	printk(KERN_INFO "Cleaning up debugfs files.\n");
+	pr_info("Cleaning up debugfs files.\n");
 }
 
 module_init(misc_init);

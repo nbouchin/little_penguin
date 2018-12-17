@@ -36,7 +36,7 @@ ssize_t device_file_write(struct file *filp, const char __user *buff,
 		*offp += count;
 	}
 	if (!strncmp(g_s_logname, g_s_chararray, 8)) {
-		printk(KERN_INFO "Device write is ok\n");
+		pr_info("Device write is ok\n");
 	} else {
 		return -EFAULT;
 	}
@@ -52,14 +52,14 @@ struct miscdevice misc = { .minor = MISC_DYNAMIC_MINOR,
 
 static int __init misc_init(void)
 {
-	printk(KERN_INFO "Hello World !\n");
+	pr_info("Hello World !\n");
 	misc_register(&misc);
 	return 0;
 }
 
 static void __exit misc_exit(void)
 {
-	printk(KERN_INFO "Cleaning up module.\n");
+	pr_info("Cleaning up module.\n");
 	misc_deregister(&misc);
 }
 
