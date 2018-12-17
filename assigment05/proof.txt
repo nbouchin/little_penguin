@@ -1,0 +1,11 @@
+#echo -e 'nbouchin' > /dev/fortytwo
+nbouchin
+#dmesg | tail -5
+[   93.585140] hrtimer: interrupt took 5379395 ns
+[  963.387615] Hello world !
+[  975.979637] Cleaning up module.
+[ 1111.852123] Hello World !
+[ 1191.938617] Device write is ok
+
+#ls -la /dev/fortytwo
+crw------- 1 root root 10, 57 Dec 17 10:44 [0m[40;33;01m/dev/fortytwo[0m
