@@ -53,8 +53,8 @@ static int my_seq_show(struct seq_file *s, void *v)
 
 	if (mnt->mnt_mountpoint &&
 	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
-		seq_printf(s, "%s\t\t%s\n", mnt->mnt_mountpoint->d_name.name,
-			   mnt->mnt_devname);
+		seq_printf(s, "%-16s%s\n", mnt->mnt_devname,
+			   mnt->mnt_mountpoint->d_name.name);
 	}
 	return 0;
 }
