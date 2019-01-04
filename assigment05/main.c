@@ -8,7 +8,7 @@
 MODULE_LICENSE("GPL");
 
 static const char g_s_logname[] = "nbouchin";
-static char g_s_chararray[9];
+static char g_s_chararray[8];
 static const ssize_t g_s_logname_size = sizeof(g_s_logname);
 
 ssize_t device_file_read(struct file *filp, char __user *buff, size_t count,
@@ -27,18 +27,19 @@ ssize_t device_file_read(struct file *filp, char __user *buff, size_t count,
 ssize_t device_file_write(struct file *filp, const char __user *buff,
 			  size_t count, loff_t *offp)
 {
-	if (!buff || count != g_s_logname_size) {
-		return -EFAULT;
-	} else {
-		if (copy_from_user(g_s_chararray + *offp, buff, count) != 0) {
-			return -EFAULT;
-		}
-		*offp += count;
+	if (*offp > 7 || count > 8) {
+		return -EINVAL;
 	}
-	if (!strncmp(g_s_logname, g_s_chararray, 8)) {
-		printk(KERN_INFO "Device write is ok\n");
-	} else {
+	if (copy_from_user(g_s_chararray + *offp, buff, count) != 0) {
 		return -EFAULT;
+	}
+	*offp += count;
+	if (*offp == 8) {
+		if (!strncmp(g_s_logname, g_s_chararray, 8)) {
+			printk(KERN_INFO "Device write is ok\n");
+		} else {
+			return -EINVAL;
+		}
 	}
 	return count;
 }
