@@ -1,0 +1,31 @@
+#ls -la /sys/kernel/debug/fortytwo
+
+total 0
+drwxr-xr-x  2 root root 0 Dec 17 10:32 [0m[01;34m.[0m
+drwx------ 22 root root 0 Dec 17 10:10 [01;34m..[0m
+-rw-r--r--  1 root root 0 Dec 17 10:32 foo
+-rwxrwxrwx  1 root root 0 Dec 17 10:32 [01;32mid[0m
+-r--r--r--  1 root root 0 Dec 17 10:32 jiffies
+
+
+#dmesg | tail -2
+[ 1322.251733] Debugfs files generated.
+[ 1460.387365] Cleaning up debugfs files.
+
+#cat /sys/kernel/debug/fortytwo/id
+nbouchin
+
+#echo -e 'nbouchin' > /sys/kernel/debug/fortytwo/id
+#dmesg | tail -1
+[ 1706.418637] Id debugfs file write is ok.
+
+#cat /sys/kernel/debug/fortytwo/jiffies
+4296461513
+
+# echo "coucou je suis" > /sys/kernel/debug/fortytwo/foo
+# cat /sys/kernel/debug/fortytwo/foo
+coucou je suis
+
+#echo "suis je coucou" > /sys/kernel/debug/fortytwo/foo
+#cat /sys/kernel/debug/fortytwo/foo
+suis je coucou

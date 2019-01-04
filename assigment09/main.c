@@ -21,22 +21,26 @@ MODULE_LICENSE("GPL");
 
 static void *my_seq_start(struct seq_file *s, loff_t *pos)
 {
-	static unsigned long counter = 0;
+	struct mnt_namespace *ns = current->nsproxy->mnt_ns;
 
-	if (*pos == 0) {
-		return &counter;
-	} else {
-		*pos = 0;
-		return NULL;
-	}
+	if (*pos != 0)
+		return 0;
+	s->private = list_first_entry(&ns->list, struct mount, mnt_list);
+	return pos;
 }
 
 static void *my_seq_next(struct seq_file *s, void *v, loff_t *pos)
 {
-	unsigned long *tmp_v = (unsigned long *)v;
-	(*tmp_v)++;
-	(*pos)++;
-	return NULL;
+	loff_t *spos = v;
+	struct mount *mount = s->private;
+
+	mount = list_next_entry(mount, mnt_list);
+	s->private = mount;
+
+	if (&mount->mnt_list == &current->nsproxy->mnt_ns->list)
+		return NULL;
+	*pos += 1;
+	return spos;
 }
 
 static void my_seq_stop(struct seq_file *s, void *v)
@@ -45,10 +49,10 @@ static void my_seq_stop(struct seq_file *s, void *v)
 
 static int my_seq_show(struct seq_file *s, void *v)
 {
-	struct mnt_namespace *ns = current->nsproxy->mnt_ns;
-	struct mount *mnt;
+	struct mount *mnt = s->private;
 
-	list_for_each_entry (mnt, &ns->list, mnt_list) {
+	if (mnt->mnt_mountpoint &&
+	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
 		seq_printf(s, "%s\t\t%s\n", mnt->mnt_mountpoint->d_name.name,
 			   mnt->mnt_devname);
 	}
@@ -65,7 +69,7 @@ static int my_open(struct inode *inode, struct file *file)
 	return seq_open(file, &my_seq_ops);
 };
 
-static srruct file_operations my_file_ops = { .owner = THIS_MODULE,
+static struct file_operations my_file_ops = { .owner = THIS_MODULE,
 					      .open = my_open,
 					      .read = seq_read,
 					      .llseek = seq_lseek,
@@ -76,6 +80,8 @@ int init_module(void)
 	struct proc_dir_entry *entry;
 
 	entry = proc_create(PROC_NAME, 0, NULL, &my_file_ops);
+	if (entry < 0)
+		return -1;
 	return 0;
 }
 
