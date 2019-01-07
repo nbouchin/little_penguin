@@ -8,6 +8,7 @@
 #include <linux/jiffies.h>
 #include <linux/slab.h>
 #include <linux/mutex.h>
+#include <linux/semaphore.h>
 
 MODULE_LICENSE("GPL");
 
@@ -17,7 +18,7 @@ static const ssize_t g_s_logname_size = sizeof(g_s_logname);
 static char ptr[PAGE_SIZE];
 static size_t ldata;
 
-DEFINE_MUTEX(lock);
+DEFINE_SEMAPHORE(lock);
 
 ssize_t id_file_read(struct file *filp, char __user *buff, size_t count,
 		     loff_t *offp)
@@ -53,32 +54,32 @@ ssize_t id_file_write(struct file *filp, const char __user *buff, size_t count,
 ssize_t foo_file_read(struct file *filp, char __user *buff, size_t count,
 		      loff_t *offp)
 {
-	mutex_lock(&lock);
+	down(&lock);
 	if (*offp >= PAGE_SIZE) {
-		mutex_unlock(&lock);
+		up(&lock);
 		return 0;
 	}
 	if (*offp + count > ldata)
 		count = ldata - *offp;
 	if (copy_to_user(buff, ptr + *offp, count) != 0) {
-		mutex_unlock(&lock);
+		up(&lock);
 		return -EFAULT;
 	}
 	*offp += count;
-	mutex_unlock(&lock);
+	up(&lock);
 	return count;
 }
 
 ssize_t foo_file_write(struct file *filp, const char __user *buff, size_t count,
 		       loff_t *offp)
 {
-	mutex_lock(&lock);
+	down(&lock);
 	if (!buff) {
-		mutex_unlock(&lock);
+		up(&lock);
 		return -EFAULT;
 	} else {
 		if (copy_from_user(ptr + ldata, buff, count) != 0) {
-			mutex_unlock(&lock);
+			up(&lock);
 			return -EFAULT;
 		}
 		*offp += count;
@@ -89,7 +90,7 @@ ssize_t foo_file_write(struct file *filp, const char __user *buff, size_t count,
 			ldata = 0;
 		}
 	}
-	mutex_unlock(&lock);
+	up(&lock);
 	return count;
 }
 
