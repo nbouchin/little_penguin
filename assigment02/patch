@@ -7,5 +7,4 @@
 -EXTRAVERSION = -rc5
 +EXTRAVERSION = -thor_kernel
  NAME = Shy Crocodile
- 
  # *DOCUMENTATION*
