@@ -48,6 +48,20 @@ static void my_seq_stop(struct seq_file *s, void *v)
 {
 }
 
+int	list_backward(struct seq_file *s, struct mount *mnt_parent)
+{
+	char buff[1024];
+
+	if (mnt_parent && strcmp(mnt_parent->mnt_mountpoint->d_name.name, "/")) {
+		list_backward(s, mnt_parent->mnt_parent);
+		seq_printf(s, "%s",
+			   dentry_path_raw(mnt_parent->mnt_mp->m_dentry, buff, 1024));
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 static int my_seq_show(struct seq_file *s, void *v)
 {
 	struct mount *mnt = s->private;
@@ -55,11 +69,8 @@ static int my_seq_show(struct seq_file *s, void *v)
 
 	if (mnt->mnt_mountpoint &&
 	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
-		seq_printf(s, "%s : ", mnt->mnt_master->mnt_devname);
 		seq_printf(s, "%-16s", mnt->mnt_devname);
-		if (strcmp(mnt->mnt_parent->mnt_mountpoint->d_name.name, "/")) {
-			seq_printf(s, "/%s", mnt->mnt_parent->mnt_mountpoint->d_name.name);
-		}
+		list_backward(s, mnt->mnt_parent);
 		seq_printf(s, "%s\n", dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 1024));
 	}
 	return 0;
