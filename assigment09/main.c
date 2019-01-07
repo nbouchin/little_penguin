@@ -53,8 +53,11 @@ static int my_seq_show(struct seq_file *s, void *v)
 
 	if (mnt->mnt_mountpoint &&
 	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
-		seq_printf(s, "%-16s%s\n", mnt->mnt_devname,
+		seq_printf(s, "%-16s%s:%s", mnt->mnt_devname,
+			   mnt->mnt_parent->mnt_mountpoint->d_name.name,
 			   mnt->mnt_mountpoint->d_name.name);
+		if (mnt->mnt_parent->mnt_parent->mnt_mountpoint->d_name.name)
+		    seq_printf(s, "DATA: [%s]\n", mnt->mnt_parent->mnt_parent->mnt_mountpoint->d_name.name);
 	}
 	return 0;
 }
@@ -89,4 +92,3 @@ void cleanup_module(void)
 {
 	remove_proc_entry(PROC_NAME, NULL);
 }
-

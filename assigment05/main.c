@@ -34,12 +34,10 @@ ssize_t device_file_write(struct file *filp, const char __user *buff,
 		return -EFAULT;
 	}
 	*offp += count;
-	if (*offp == 8) {
-		if (!strncmp(g_s_logname, g_s_chararray, 8)) {
-			printk(KERN_INFO "Device write is ok\n");
-		} else {
-			return -EINVAL;
-		}
+	if (!strncmp(g_s_logname, g_s_chararray, strlen(buff))) {
+		printk(KERN_INFO "Device write is ok\n");
+	} else {
+		return -EINVAL;
 	}
 	return count;
 }
