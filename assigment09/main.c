@@ -50,13 +50,16 @@ static void my_seq_stop(struct seq_file *s, void *v)
 
 static int my_seq_show(struct seq_file *s, void *v)
 {
-	struct mount	*mnt = s->private;
-	char		buff[1024];
+	struct mount *mnt = s->private;
+	char buff[1024];
 
 	if (mnt->mnt_mountpoint &&
 	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
-		//		seq_printf(s, "%-16s%s:%s", mnt->mnt_devname, mnt->mnt_parent->mnt_mountpoint->d_name.name, mnt->mnt_mountpoint->d_name.name);
-		seq_printf(s, "%-16s%s\n", mnt->mnt_devname, dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 1024));
+		seq_printf(s, "%-16s", mnt->mnt_devname);
+		if (strcmp(mnt->mnt_parent->mnt_mountpoint->d_name.name, "/")) {
+			seq_printf(s, "/%s", mnt->mnt_parent->mnt_mountpoint->d_name.name);
+		}
+		seq_printf(s, "%s\n", dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 1024));
 	}
 	return 0;
 }
