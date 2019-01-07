@@ -12,6 +12,7 @@
 #include <linux/proc_fs.h>
 #include <linux/namei.h>
 #include <linux/nsproxy.h>
+#include <linux/dcache.h>
 #include <../fs/proc/internal.h>
 #include <../fs/mount.h>
 
@@ -49,15 +50,13 @@ static void my_seq_stop(struct seq_file *s, void *v)
 
 static int my_seq_show(struct seq_file *s, void *v)
 {
-	struct mount *mnt = s->private;
+	struct mount	*mnt = s->private;
+	char		buff[1024];
 
 	if (mnt->mnt_mountpoint &&
 	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
-		seq_printf(s, "%-16s%s:%s", mnt->mnt_devname,
-			   mnt->mnt_parent->mnt_mountpoint->d_name.name,
-			   mnt->mnt_mountpoint->d_name.name);
-		if (mnt->mnt_parent->mnt_parent->mnt_mountpoint->d_name.name)
-		    seq_printf(s, "DATA: [%s]\n", mnt->mnt_parent->mnt_parent->mnt_mountpoint->d_name.name);
+		//		seq_printf(s, "%-16s%s:%s", mnt->mnt_devname, mnt->mnt_parent->mnt_mountpoint->d_name.name, mnt->mnt_mountpoint->d_name.name);
+		seq_printf(s, "%-16s%s\n", mnt->mnt_devname, dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 1024));
 	}
 	return 0;
 }
