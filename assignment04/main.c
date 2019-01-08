@@ -4,6 +4,8 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 
+MODULE_LICENSE("GPL");
+
 static int __init hello_init(void)
 {
 	pr_info("Hello world !\n");

@@ -10,43 +10,38 @@
 MODULE_LICENSE("GPL");
 
 static const char g_s_logname[] = "nbouchin";
-static char g_s_chararray[8];
-static const ssize_t g_s_logname_size = sizeof(g_s_logname);
+static char g_s_chararray[101];
+static const ssize_t g_s_logname_size = sizeof(g_s_logname) - 1;
 
 ssize_t device_file_read(struct file *filp, char __user *buff, size_t count,
 			 loff_t *offp)
 {
-	if (*offp >= g_s_logname_size)
-		return 0;
-	if (*offp + count > g_s_logname_size)
-		count = g_s_logname_size - *offp;
-	if (copy_to_user(buff, g_s_logname + *offp, count) != 0)
-		return -EFAULT;
-	*offp += count;
-	return count;
+	return simple_read_from_buffer(buff, count, offp, g_s_logname, 8);
 }
 
 ssize_t device_file_write(struct file *filp, const char __user *buff,
 			  size_t count, loff_t *offp)
 {
-	if (*offp > 7 || count > 8)
-		return -EINVAL;
-	if (copy_from_user(g_s_chararray + *offp, buff, count) != 0)
-		return -EFAULT;
-	*offp += count;
-	if (!strncmp(g_s_logname, g_s_chararray, strlen(buff)))
+	size_t ret;
+
+	ret = simple_write_to_buffer(g_s_chararray, 100, offp, buff, count);
+	if (ret < 0)
+		return ret;
+	if (!strncmp(g_s_logname, g_s_chararray, strlen(g_s_chararray))) {
 		pr_info("Device write is ok\n");
-	else
-		return -EINVAL;
-	return count;
+		return count;
+	}
+	memset(g_s_chararray, 0, sizeof(g_s_chararray));
+	return -EINVAL;
 }
 
-struct const file_operations fops = { .read = device_file_read,
+const struct file_operations fops = { .owner = THIS_MODULE,
+				      .read = device_file_read,
 				      .write = device_file_write };
 
-struct const miscdevice misc = { .minor = MISC_DYNAMIC_MINOR,
-				 .name = "fortytwo",
-				 .fops = &fops };
+struct miscdevice misc = { .minor = MISC_DYNAMIC_MINOR,
+			   .name = "fortytwo",
+			   .fops = &fops };
 
 static int __init misc_init(void)
 {

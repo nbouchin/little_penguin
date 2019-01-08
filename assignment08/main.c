@@ -7,6 +7,7 @@
 #include <linux/fs.h>
 #include <linux/slab.h>
 
+MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Louis Solofrizzo <louis@ne02ptzero.me>");
 MODULE_DESCRIPTION("reverse string module");
 
@@ -49,10 +50,13 @@ ssize_t myfd_read(struct file *fp, char __user *user, size_t size, loff_t *offs)
 
 	ret = 0;
 	tmp = kmalloc(sizeof(char) * PAGE_SIZE, GFP_KERNEL);
+	if (!tmp)
+		return -ENOMEM;
 	for (t = strlen(str) - 1, i = 0; t >= 0; t--, i++)
 		tmp[i] = str[t];
 	tmp[i] = 0x0;
 	ret = simple_read_from_buffer(user, size, offs, tmp, i);
+	kfree(tmp);
 	return ret;
 }
 
