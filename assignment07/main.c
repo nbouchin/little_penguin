@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -36,18 +38,15 @@ ssize_t id_file_read(struct file *filp, char __user *buff, size_t count,
 ssize_t id_file_write(struct file *filp, const char __user *buff, size_t count,
 		      loff_t *offp)
 {
-	if (*offp > 7 || count > 8) {
+	if (*offp > 7 || count > 8)
 		return -EINVAL;
-	}
-	if (copy_from_user(g_s_chararray + *offp, buff, count) != 0) {
+	if (copy_from_user(g_s_chararray + *offp, buff, count) != 0)
 		return -EFAULT;
-	}
 	*offp += count;
-	if (!strncmp(g_s_logname, g_s_chararray, strlen(buff))) {
-		printk(KERN_INFO "Device write is ok\n");
-	} else {
+	if (!strncmp(g_s_logname, g_s_chararray, strlen(buff)))
+		pr_info("Device write is ok\n");
+	else
 		return -EINVAL;
-	}
 	return count;
 }
 
@@ -77,33 +76,32 @@ ssize_t foo_file_write(struct file *filp, const char __user *buff, size_t count,
 	if (!buff) {
 		up(&lock);
 		return -EFAULT;
-	} else {
-		if (copy_from_user(ptr + ldata, buff, count) != 0) {
-			up(&lock);
-			return -EFAULT;
-		}
-		*offp += count;
-		ldata += count;
-		if (ldata > PAGE_SIZE) {
-			memset(ptr, 0, PAGE_SIZE);
-			*offp = 0;
-			ldata = 0;
-		}
+	}
+	if (copy_from_user(ptr + ldata, buff, count) != 0) {
+		up(&lock);
+		return -EFAULT;
+	}
+	*offp += count;
+	ldata += count;
+	if (ldata > PAGE_SIZE) {
+		memset(ptr, 0, PAGE_SIZE);
+		*offp = 0;
+		ldata = 0;
 	}
 	up(&lock);
 	return count;
 }
 
-struct dentry *fortytwo = NULL;
-struct file_operations id_fops = { .read = id_file_read,
-				   .write = id_file_write };
-struct file_operations foo_fops = { .read = foo_file_read,
-				    .write = foo_file_write };
+struct dentry *fortytwo;
+const struct file_operations id_fops = { .read = id_file_read,
+					 .write = id_file_write };
+const struct file_operations foo_fops = { .read = foo_file_read,
+					  .write = foo_file_write };
 
 static int __init misc_init(void)
 {
 	fortytwo = debugfs_create_dir("fortytwo", NULL);
-	debugfs_create_file("id", 0777, fortytwo, NULL, &id_fops);
+	debugfs_create_file("id", 0774, fortytwo, NULL, &id_fops);
 	debugfs_create_u64("jiffies", 0444, fortytwo, (void *)&jiffies);
 	debugfs_create_file("foo", 0644, fortytwo, NULL, &foo_fops);
 	pr_info("Debugfs files generated.\n");

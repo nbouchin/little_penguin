@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -27,38 +29,35 @@ ssize_t device_file_read(struct file *filp, char __user *buff, size_t count,
 ssize_t device_file_write(struct file *filp, const char __user *buff,
 			  size_t count, loff_t *offp)
 {
-	if (*offp > 7 || count > 8) {
+	if (*offp > 7 || count > 8)
 		return -EINVAL;
-	}
-	if (copy_from_user(g_s_chararray + *offp, buff, count) != 0) {
+	if (copy_from_user(g_s_chararray + *offp, buff, count) != 0)
 		return -EFAULT;
-	}
 	*offp += count;
-	if (!strncmp(g_s_logname, g_s_chararray, strlen(buff))) {
-		printk(KERN_INFO "Device write is ok\n");
-	} else {
+	if (!strncmp(g_s_logname, g_s_chararray, strlen(buff)))
+		pr_info("Device write is ok\n");
+	else
 		return -EINVAL;
-	}
 	return count;
 }
 
-struct file_operations fops = { .read = device_file_read,
-				.write = device_file_write };
+struct const file_operations fops = { .read = device_file_read,
+				      .write = device_file_write };
 
-struct miscdevice misc = { .minor = MISC_DYNAMIC_MINOR,
-			   .name = "fortytwo",
-			   .fops = &fops };
+struct const miscdevice misc = { .minor = MISC_DYNAMIC_MINOR,
+				 .name = "fortytwo",
+				 .fops = &fops };
 
 static int __init misc_init(void)
 {
-	printk(KERN_INFO "Hello World !\n");
+	pr_info("Hello World !\n");
 	misc_register(&misc);
 	return 0;
 }
 
 static void __exit misc_exit(void)
 {
-	printk(KERN_INFO "Cleaning up module.\n");
+	pr_info("Cleaning up module.\n");
 	misc_deregister(&misc);
 }
 
