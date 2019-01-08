@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0
-/*
- *  codingStyle.c
- *
- *  Copyright (C) 1991, 1992  Linus Torvalds
- *  changes by Thomas Schoebel-Theuer
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -18,7 +12,7 @@ int     do_work(int *my_int, int retval)
 	int z = 0;
 
 	for (x = 0; x < my_int; ++x)
-		udelay(10);
+		mdelay(10);
 	if (y < 10)
 		pr_info("We slept a long time!");
 	z = x * y;

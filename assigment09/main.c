@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -48,18 +50,22 @@ static void my_seq_stop(struct seq_file *s, void *v)
 {
 }
 
-void	list_backward(struct seq_file *s, struct mount *mnt)
+void list_backward(struct seq_file *s, struct mount *mnt)
 {
-	int		i = 0;
-	int		lock = 0;
-	char		buff[256] = {0};
-	char		*table[128] = {0};
-	struct mount	*mnt_parent = NULL;
+	int i = 0;
+	int lock = 0;
+	char buff[256] = { 0 };
+	char *table[128] = { 0 };
+	struct mount *mnt_parent = NULL;
 
 	mnt_parent = mnt->mnt_parent;
 	seq_printf(s, "%-16s", mnt->mnt_devname);
-	for (; mnt_parent && strcmp(mnt_parent->mnt_mountpoint->d_name.name, "/"); i++) {
-		table[i] = kstrdup(dentry_path_raw(mnt_parent->mnt_mp->m_dentry, buff, 256), GFP_KERNEL);
+	for (;
+	     mnt_parent && strcmp(mnt_parent->mnt_mountpoint->d_name.name, "/");
+	     i++) {
+		table[i] = kstrdup(dentry_path_raw(mnt_parent->mnt_mp->m_dentry,
+						   buff, 256),
+				   GFP_KERNEL);
 		mnt_parent = mnt_parent->mnt_parent;
 	}
 	for (i--; i >= 0; i--) {
@@ -67,12 +73,13 @@ void	list_backward(struct seq_file *s, struct mount *mnt)
 		kfree(table[i]);
 		lock = 1;
 	}
-	if (!strcmp(dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 256), "/") && lock) {
-
+	if (!strcmp(dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 256), "/") &&
+	    lock) {
 	} else {
-		seq_printf(s, "%s", dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 256));
+		seq_printf(s, "%s",
+			   dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 256));
 	}
-	seq_printf(s, "\n");
+	seq_puts(s, "\n");
 }
 
 static int my_seq_show(struct seq_file *s, void *v)
@@ -86,21 +93,21 @@ static int my_seq_show(struct seq_file *s, void *v)
 	return 0;
 }
 
-static struct seq_operations my_seq_ops = { .start = my_seq_start,
-	.next = my_seq_next,
-	.stop = my_seq_stop,
-	.show = my_seq_show };
+static const struct seq_operations my_seq_ops = { .start = my_seq_start,
+						  .next = my_seq_next,
+						  .stop = my_seq_stop,
+						  .show = my_seq_show };
 
 static int my_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &my_seq_ops);
 };
 
-static struct file_operations my_file_ops = { .owner = THIS_MODULE,
-	.open = my_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = seq_release };
+static const struct file_operations my_file_ops = { .owner = THIS_MODULE,
+						    .open = my_open,
+						    .read = seq_read,
+						    .llseek = seq_lseek,
+						    .release = seq_release };
 
 int init_module(void)
 {
