@@ -48,38 +48,48 @@ static void my_seq_stop(struct seq_file *s, void *v)
 {
 }
 
-int	list_backward(struct seq_file *s, struct mount *mnt_parent)
+void	list_backward(struct seq_file *s, struct mount *mnt)
 {
-	char buff[1024];
+	int		i = 0;
+	int		lock = 0;
+	char		buff[256] = {0};
+	char		*table[128] = {0};
+	struct mount	*mnt_parent = NULL;
 
-	if (mnt_parent && strcmp(mnt_parent->mnt_mountpoint->d_name.name, "/")) {
-		list_backward(s, mnt_parent->mnt_parent);
-		seq_printf(s, "%s",
-			   dentry_path_raw(mnt_parent->mnt_mp->m_dentry, buff, 1024));
-		return 1;
-	} else {
-		return 0;
+	mnt_parent = mnt->mnt_parent;
+	seq_printf(s, "%-16s", mnt->mnt_devname);
+	for (; mnt_parent && strcmp(mnt_parent->mnt_mountpoint->d_name.name, "/"); i++) {
+		table[i] = kstrdup(dentry_path_raw(mnt_parent->mnt_mp->m_dentry, buff, 256), GFP_KERNEL);
+		mnt_parent = mnt_parent->mnt_parent;
 	}
+	for (i--; i >= 0; i--) {
+		seq_printf(s, "%s", table[i]);
+		kfree(table[i]);
+		lock = 1;
+	}
+	if (!strcmp(dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 256), "/") && lock) {
+
+	} else {
+		seq_printf(s, "%s", dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 256));
+	}
+	seq_printf(s, "\n");
 }
 
 static int my_seq_show(struct seq_file *s, void *v)
 {
 	struct mount *mnt = s->private;
-	char buff[1024];
 
 	if (mnt->mnt_mountpoint &&
 	    mnt->mnt_mountpoint->d_flags & DCACHE_MOUNTED && mnt->mnt_mp) {
-		seq_printf(s, "%-16s", mnt->mnt_devname);
-		list_backward(s, mnt->mnt_parent);
-		seq_printf(s, "%s\n", dentry_path_raw(mnt->mnt_mp->m_dentry, buff, 1024));
+		list_backward(s, mnt);
 	}
 	return 0;
 }
 
 static struct seq_operations my_seq_ops = { .start = my_seq_start,
-					    .next = my_seq_next,
-					    .stop = my_seq_stop,
-					    .show = my_seq_show };
+	.next = my_seq_next,
+	.stop = my_seq_stop,
+	.show = my_seq_show };
 
 static int my_open(struct inode *inode, struct file *file)
 {
@@ -87,10 +97,10 @@ static int my_open(struct inode *inode, struct file *file)
 };
 
 static struct file_operations my_file_ops = { .owner = THIS_MODULE,
-					      .open = my_open,
-					      .read = seq_read,
-					      .llseek = seq_lseek,
-					      .release = seq_release };
+	.open = my_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = seq_release };
 
 int init_module(void)
 {
